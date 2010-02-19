@@ -43,34 +43,34 @@
     :else (throw (IllegalArgumentException.
                    "with-open* only allows Symbols in bindings"))))
 
+(defn- representation-of-vars->bindmap
+  "Makes a sexp that, when evaluated, will create a binding-map for
+  vars."
+  [var-names]
+  (let [var-forms (map (fn [v] `(var ~v))
+                       var-names)]
+    `(hash-map ~@(interleave var-forms var-names))))
 
+(defmacro with-binding-map
+  "Makes a map of vars and their current values. (The \"binding map\".) 
+This map is then bound to name, as if by let.
 
-(defmacro save-binding
-  "Saves the values of vars. Within body, you can wrap forms within 
-'reload-binding', which will rebind the vars to the saved values.
+Notes: 
+  Particularly useful when you're making a chlid thread which should
+  inherit current var bindings.
 
-This is particularly helpful when you create new threads which reset
-the value of vars to their root values.
+  The binding-map is useful for with-bindings.
 
 Example:
-
-(def *a* nil)
-(def *b* nil)
-
-(defn foo []
-  [*b* *a*])
-
-(deref
- (binding [*a* 10
-           *b* 20]
-   (save-binding [*a* *b*]
-     (future (reload-binding (foo))))))
-=> [20 10]
-"
-  [[& vars] & body]
-  (let [gensyms (map (fn [_] (gensym)) vars)]
-    `(let ~(vec (mapcat (fn [g v] [g v]) gensyms vars))
-       (macrolet [(~(symbol 'reload-binding) [& rest#]
-                    `(binding ~~(vec (mapcat (fn [g v] [`'~v `'~g]) gensyms vars))
-                       ~@rest#))]
-          ~@body))))
+  (def *a* nil)
+  (def *b* nil)
+  (deref
+   (binding [*a* :new-binding, *b* :new-binding]
+     (with-binding-map [foo *a* *b*]
+       (future (with-bindings foo
+                 [*a* *b*])))))
+  => [:new-binding :new-binding]"
+  [[name & vars] & body]
+  (let [var-map (representation-of-vars->bindmap vars)]
+    `(let [~name ~var-map]
+       ~@body)))
