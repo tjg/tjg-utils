@@ -69,7 +69,7 @@ Example:
 "
   [[& vars] & body]
   (let [gensyms (map (fn [_] (gensym)) vars)]
-    `(let ~(vec (mapcat (fn [v g] [g v]) vars gensyms))
+    `(let ~(vec (mapcat (fn [g v] [g v]) gensyms vars))
        (macrolet [(~(symbol 'reload-binding) [& rest#]
                     `(binding ~~(vec (mapcat (fn [g v] [`'~v `'~g]) gensyms vars))
                        ~@rest#))]
