@@ -2,25 +2,7 @@
   #^{:author "Tayssir John Gabbour",
      :doc "Handy utils"}
   (:gen-class)
-  (:use clojure.contrib.macro-utils)
-  #_(:use clojure.test)
-  #_(:use clojure.contrib.server-socket)
-  #_(:use clojure.contrib.str-utils)
-  (:import (java.net Socket)
-	   (java.io PrintWriter InputStreamReader BufferedReader)
-	   (java.net InetSocketAddress)))
-
-(def *connect-timeout* 3)
-
-(defn- connect
-  "Connect to a remote socket and return handles for input and output."
-  [host port]
-  (let [socket (Socket.)]
-    (.connect socket (InetSocketAddress. host port) *connect-timeout*)
-    (ref {:socket socket
-	  :in (BufferedReader. (InputStreamReader. (.getInputStream socket)))
-	  :out (PrintWriter. (.getOutputStream socket))})))
-
+  (:use clojure.contrib.macro-utils))
 
 (defmacro #^{:private true} assert-args [fnname & pairs]
   `(do (when-not ~(first pairs)
@@ -64,9 +46,11 @@
 
 
 (defmacro save-binding
-  "Saves the values of vars. Within body, you can wrap forms within 'reload-binding', which will rebind the vars to the saved values.
+  "Saves the values of vars. Within body, you can wrap forms within 
+'reload-binding', which will rebind the vars to the saved values.
 
-This is particularly helpful when you create new threads which reset the value of vars to their root values.
+This is particularly helpful when you create new threads which reset
+the value of vars to their root values.
 
 Example:
 
