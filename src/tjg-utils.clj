@@ -74,3 +74,22 @@ Example:
   (let [var-map (representation-of-vars->bindmap vars)]
     `(let [~name ~var-map]
        ~@body)))
+
+(defmacro save-vars [[& vars] & body]
+  "Save the bindings of vars. The local macro reload-vars will reload 
+those bindings, even in a different thread.
+
+Example:
+  (do (def *a* nil)
+      (def *b* nil)
+      @(binding [*a* :foo, *b* :foo]
+         (save-vars [*a* *b*]
+           (future (reload-vars [*a* *b*])))))
+  => [:foo :foo]
+"
+  `(with-binding-map [name# ~@vars]
+     (macrolet [(~(symbol 'reload-vars) [& body#]
+                  (concat (list 'with-bindings 'name#)
+                          body#))]
+               ~@body)))
+
