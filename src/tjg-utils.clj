@@ -89,7 +89,10 @@ Example:
 "
   `(with-binding-map [name# ~@vars]
      (macrolet [(~(symbol 'reload-vars) [& body#]
-                  (concat (list 'with-bindings 'name#)
-                          body#))]
+                 ;; Note: nested syntax-quotes would be prettier for
+                 ;; this macrolet body, but I get a weird error when I
+                 ;; do that.
+                 (concat (list 'with-bindings 'name#)
+                         body#))]
                ~@body)))
 
