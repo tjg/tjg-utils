@@ -62,14 +62,14 @@ Notes:
   The binding-map is useful for with-bindings.
 
 Example:
-  (def *a* nil)
-  (def *b* nil)
-  (deref
-   (binding [*a* :new-binding, *b* :new-binding]
-     (with-binding-map [foo *a* *b*]
-       (future (with-bindings foo
-                 [*a* *b*])))))
-  => [:new-binding :new-binding]"
+  (do (def *a* nil)
+      (def *b* nil)
+      @(binding [*a* :foo, *b* :foo]
+         (with-binding-map [foo *a* *b*]
+           (future (with-bindings foo
+                     [*a* *b*])))))
+  => [:foo :foo]
+"
   [[name & vars] & body]
   (let [var-map (representation-of-vars->bindmap vars)]
     `(let [~name ~var-map]
